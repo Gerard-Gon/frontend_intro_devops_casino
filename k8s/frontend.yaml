@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: 914091100375.dkr.ecr.us-east-1.amazonaws.com/casino-frontend:latest
+        ports:
+        - containerPort: 8080
+        # Las sondas aseguran que Nginx esté vivo y respondiendo
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 5
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: LoadBalancer # Esto crea un ELB en AWS automáticamente
+  selector:
+    app: frontend
+  ports:
+  - protocol: TCP
+    port: 80        # Puerto público externo
+    targetPort: 8080 # Puerto interno del contenedor (Nginx)
