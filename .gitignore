@@ -3,6 +3,7 @@ dist
 .angular
 *.log
 .DS_Store
+.env
 
 # Claude Code (IA)
 .claude/
