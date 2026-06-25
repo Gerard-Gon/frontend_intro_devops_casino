@@ -15,6 +15,10 @@ spec:
       containers:
       - name: frontend
         image: 914091100375.dkr.ecr.us-east-1.amazonaws.com/casino-frontend:latest
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
         ports:
         - containerPort: 8080
         # Las sondas aseguran que Nginx esté vivo y respondiendo
