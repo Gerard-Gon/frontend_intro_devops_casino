@@ -1,0 +1,68 @@
+# ============================================================
+# CI/CD de casino-frontend — un workflow POR REPOSITORIO.
+# Construye la imagen nginx (Dockerfile de producción), la publica en ECR y
+# redepliega SU deployment en EKS.
+#
+# PLANTILLA: configura como Secrets/Variables del repositorio:
+#   vars.AWS_REGION / vars.ECR_REPOSITORY (p.ej. casino-frontend) / vars.EKS_CLUSTER
+#   secrets.AWS_ROLE_ARN (rol IAM con confianza OIDC para GitHub Actions)
+# ============================================================
+name: deploy-casino-frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "angular.json"
+      - "package*.json"
+      - "Dockerfile"
+      - "nginx.conf"
+      - "k8s/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciales AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login a Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag & push de la imagen (nginx prod)
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t "$REGISTRY/$REPOSITORY:$IMAGE_TAG" -t "$REGISTRY/$REPOSITORY:latest" .
+          docker push "$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          docker push "$REGISTRY/$REPOSITORY:latest"
+
+      - name: Configurar kubeconfig para EKS
+        run: aws eks update-kubeconfig --name "${{ vars.EKS_CLUSTER }}" --region "${{ vars.AWS_REGION }}"
+
+      - name: Desplegar en EKS
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+          REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          kubectl apply -f k8s/
+          kubectl set image deployment/casino-frontend \
+            casino-frontend="$REGISTRY/$REPOSITORY:$IMAGE_TAG"
+          kubectl rollout status deployment/casino-frontend --timeout=120s

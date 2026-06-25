@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: casino-frontend
+  labels:
+    app: casino-frontend
+spec:
+  # LoadBalancer: punto de entrada PÚBLICO del casino. En EKS provisiona un ELB.
+  # (Alternativa más común en producción: type ClusterIP + un Ingress/ALB.)
+  type: LoadBalancer
+  selector:
+    app: casino-frontend
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80

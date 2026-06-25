@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: casino-frontend
+  labels:
+    app: casino-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: casino-frontend
+  template:
+    metadata:
+      labels:
+        app: casino-frontend
+    spec:
+      containers:
+        - name: casino-frontend
+          # Reemplazar <ACCOUNT_ID> y <REGION> tras el push a Amazon ECR.
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/casino-frontend:latest
+          ports:
+            - containerPort: 80
+          # nginx hace de gateway: enruta /api/bonos, /api/apuestas y /api/*
+          # a los Services internos (ver nginx.conf).
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
