@@ -10,6 +10,13 @@ describe('AuthService', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     svc = TestBed.inject(AuthService);
   });
+  it('test roto para profe - demostrando bloqueo del pipeline', () => {
+    const estadoDelSistema = 'roto';
+    const estadoEsperado = 'funcionando';
+    
+    // Esto va a fallar a propósito porque 'roto' no es igual a 'funcionando'
+    expect(estadoDelSistema).toBe(estadoEsperado);
+  });
 
   it('se crea', () => {
     expect(svc).toBeTruthy();
