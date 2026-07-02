@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: 914091100375.dkr.ecr.us-east-1.amazonaws.com/casino-frontend:latest
+        image: 994995081324.dkr.ecr.us-east-1.amazonaws.com/casino/frontend:latest
         resources:
           requests:
             cpu: "100m"
@@ -39,18 +39,4 @@ spec:
           limits:
             cpu: "250m"
             memory: "256Mi"
----
 
-#service.yml
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-service
-spec:
-  type: LoadBalancer # Esto crea un ELB en AWS automáticamente
-  selector:
-    app: frontend
-  ports:
-  - protocol: TCP
-    port: 80        # Puerto público externo
-    targetPort: 8080 # Puerto interno del contenedor (Nginx)
