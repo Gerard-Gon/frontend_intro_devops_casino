@@ -1,0 +1,11 @@
+# ---- casino-frontend — imagen de DESARROLLO ----
+# Usada por docker-compose para levantar `ng serve` con recarga en caliente.
+# El navegador (en el host) llama directo a localhost:3000/8004/8005 (CORS).
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 4200
+# package.json: "start": "ng serve --host 0.0.0.0 --port 4200 --poll 2000"
+CMD ["npm", "start"]
