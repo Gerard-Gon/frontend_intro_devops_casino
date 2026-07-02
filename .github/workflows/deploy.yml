@@ -67,5 +67,6 @@ jobs:
         ECR_REPOSITORY: casino/frontend
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        kubectl apply -f k8s/frontend.yaml
+        kubectl apply -f k8s/frontend-deployment.yaml
+        kubectl apply -f k8s/frontend-service.yaml
         kubectl set image deployment/frontend-deployment frontend=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
